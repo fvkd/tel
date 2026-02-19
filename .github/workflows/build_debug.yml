@@ -39,6 +39,10 @@ jobs:
         mv app/build/outputs/apk/release/app-x86-release-unsigned.apk TEL-x86.apk
         mv app/build/outputs/apk/release/app-x86_64-release-unsigned.apk TEL-x86_x64.apk
 
+    - name: Download TEL.API.apk
+      run: |
+        wget -O TEL.API.apk $(curl -s https://api.github.com/repos/t-e-l/termux-api/releases/latest | grep "browser_download_url" | cut -d : -f 2,3 | tr -d \" | xargs)
+
     - name: Release
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
@@ -48,3 +52,4 @@ jobs:
         title: "TEL-${{ steps.date.outputs.date }}"
         files: |
           *.apk
+          TEL.API.apk

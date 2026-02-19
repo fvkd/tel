@@ -16,6 +16,16 @@ sed -i 's/\bexa\b/eza/g' bootstrap-changes/bin/tel-edit
 sed -i 's/exit 0/exit 1/' bootstrap-changes/bin/tel-helpers
 sed -i 's/^check_connection$/check_connection || exit 1/' bootstrap-changes/bin/tel-setup
 
+# My added fixes for tel-setup
+sed -i 's/^tel-update/#tel-update/g' bootstrap-changes/bin/tel-setup # Disable self-update
+sed -i 's/pkg install/apt-get install -y/g' bootstrap-changes/bin/tel-setup # Replace pkg with apt-get
+sed -i 's/\(apt-get install -y \)/\1which /' bootstrap-changes/bin/tel-setup # Install which command
+sed -i '106,108s/^/#/' bootstrap-changes/bin/tel-setup # Fix line 106 syntax error
+# Ensure sources.list uses grimler.se and apt update allows release info changes
+sed -i 's|apt-get update|apt-get update --allow-releaseinfo-change|g' bootstrap-changes/bin/tel-setup # Allow release info change
+sed -i 's|termux.org/packages|grimler.se/termux-packages-24|g' bootstrap-changes/bin/tel-setup # Set grimler mirror
+
+
 for ARCH in $ARCHS; do
     URL=$BOOTSTRAP_URL$VERSION/bootstrap-$ARCH.zip
     echo "working on $ARCH"
@@ -24,6 +34,8 @@ for ARCH in $ARCHS; do
 	wget -O bootstrap-$ARCH.zip $URL > /dev/null 2>&1
 	unzip bootstrap-$ARCH.zip -d bootstrap-$ARCH > /dev/null 2>&1
 	cp -r bootstrap-changes/* bootstrap-$ARCH 
+	# Fix libz.so.1 symlink for apt-get
+	ln -sf usr/lib/libz.so.1.3.2 bootstrap-$ARCH/usr/lib/libz.so.1
 	cd bootstrap-$ARCH
         rm -f etc/apt/sources.list.d/*.list
 	echo "zipping package"
